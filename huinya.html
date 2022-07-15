@@ -1,0 +1,155 @@
+<script src="https://forma.tinkoff.ru/static/onlineScript.js"></script>
+
+<div class="t-input-group t-input-group_sb tkf-group" style="display:none"> 
+    <div class="t-input-title t-descr t-descr_md" data-redactor-toolbar="no">Выбрать срок рассрочки</div> 
+    <div class="t-input-subtitle t-descr t-descr_xxs t-opacity_70"></div>
+    <div class="t-input-block"> 
+        <div class="t-select__wrapper"> 
+            <select name="tkf-select" class="t-select tkf-select"> 
+                <option value="installment_0_0_3_5,19">На 3 месяца</option> 
+                <option value="installment_0_0_6_8,84">На 6 месяцев</option> 
+                <option value="installment_0_0_10_13,42">На 10 месяцев</option>
+                <option value="installment_0_0_12_15,59 ">На 12 месяцев</option>
+            </select>
+        </div>
+        <div class="tkf-button">Отправить заявку на рассрочку</div>
+        </div>
+</div> 
+
+<style>
+div[class^="modal-root"] {z-index: 101000}    
+.tkfdis{opacity:0.4;pointer-events: none;}
+
+select.tkf-select {
+    color: #000000;
+    border: 1px solid #000000;
+}
+.tkf-button {
+    background-color: #ffdd2d;
+    border-radius: 4px;
+    padding: 20px 0px 20px;
+    transition: all 0.25s linear;
+    top: 18px;
+    width: 100%;
+    text-align: center;
+    color: #484848;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-family: 'Roboto',Arial,sans-serif;
+}
+.tkf-button:hover {
+    background-color: #fcc521;
+}
+</style>
+
+<script>
+$(document).ready(function(){
+$('input[value="banktransfer"]').closest('label').addClass('tkf-credit');
+$('.tkf-group').insertAfter('.t706 .t-form');
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+};
+let creditActive=false;
+let sumtotal = 0;
+let prodListArr=[];
+let orderName=0;
+function getProdList(){
+    orderName = "Ord-ImPro-"+getRandomInt(100000, 980900);
+    $('input[name="tkfOrderNumber"]').val(orderName);
+    sumtotal = window.tcart.prodamount;
+    prodListArr=[];
+    for (let i = 0; i < window.tcart.products.length ; i++) {
+        let prodListObj={};    
+        prodListObj['name'] = window.tcart.products[i]['name'];
+        prodListObj['price'] = window.tcart.products[i]['price'];
+        prodListObj['quantity'] = window.tcart.products[i]['quantity'];
+        prodListArr.push(prodListObj);
+        
+        
+        
+        
+};
+};
+function getCredit(){
+tinkoff.create(
+    {
+      sum: sumtotal ,
+      items: prodListArr  ,
+      demoFlow: 'sms',
+      promoCode: $('select.tkf-select').val() ,
+      orderNumber: orderName,
+
+       shopId: '67235ac1-d60b-43c0-a0a0-092c1d600c56',
+      showcaseId: '9b5deeff-4f3e-4884-90a6-dbcbdb580fca',
+
+      values: {
+        contact: {
+          mobilePhone: $('input[name="cartPhone"]').val(),
+          email: $('input[name="cartMail"]').val()
+        }
+      }
+    },
+    {view: 'modal'} // newTab - вая вкладка , modal - popup на странице
+  );
+};
+
+function checkStartPosition(){
+    if ( $('input[type=radio][name=paymentsystem]:checked').attr('data-payment-variant-system') == 'banktransfer') {
+        creditActive=true;
+        $('.tkf-group').show();
+        $('.t706 .t-form__submit').hide();
+    }else{creditActive=false;$('.tkf-group').hide();$('.t706 .t-form__submit').show()};  
+};
+
+$(".t706__cartwin-prodamount").bind( 'DOMSubtreeModified',function() {
+    checkStartPosition();
+    if(window.tcart.prodamount<3000){
+        $('.tkf-credit input[type="radio"]').attr('disabled', true);
+        $('.t-radio__wrapper-payment label:first input').prop('checked', true);
+        $('.t-radio__wrapper-payment label:first input').change();
+        $('.tkf-credit').addClass('tkfdis');
+        $('.tkf-group').hide();
+    }else{
+        getProdList();    
+        $('.tkf-credit input[type="radio"]').attr('disabled', false);
+        $('.tkf-credit').removeClass('tkfdis');
+    };
+});
+
+$('input[type=radio][name=paymentsystem]').change(function() { checkStartPosition()});
+    
+$('.t706').on("keydown", ".t-form", function(event) {return event.key != "Enter";});   
+
+//Момент удаления товара
+function uNdisSubm(){
+    setTimeout(function(){ 
+        if( $('.t706__product-deleted').length){disSubm();
+        }else{
+            $('.t706 .t-submit , .tkf-button').removeClass('tkfdis'); getProdList();  
+        };
+    }, 4000);
+};
+function disSubm(){
+    if( $('.t706__product-deleted').length){
+            $('.t706 .t-submit , .tkf-button').addClass('tkfdis'); uNdisSubm();
+    };
+};
+$(document).on('click',' .t706__product-del ',function(e){ 
+    setTimeout(function(){ disSubm()}, 500);
+});
+
+
+$('.tkf-button').click(function(e) {
+setTimeout(function(){$('.t706 .t-submit').click()}, 400);
+setTimeout(function(){ 
+    if ( !$('.t706 .t-input-group').hasClass('js-error-control-box') ){
+        getCredit();
+        $('select.tkf-select').prop('disabled', true).parent().addClass('tkfdis');
+        $('.tkf-group').hide();
+} 
+}, 700);
+});    
+});  
+</script>
